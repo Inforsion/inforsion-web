@@ -175,11 +175,16 @@ const SalesChart = () => {
 
   return (
     <div className="min-h-screen bg-background-primary dark:bg-background-dark-primary">
-      <div className="chart-container">
-        <ResponsiveContainer width="100%" height={250}>
+      <div className="chart-container focus:outline-none">
+        <ResponsiveContainer
+          className={"focus:outline-none"}
+          width="100%"
+          height={250}
+        >
           <BarChart
             data={chartData}
             margin={{ top: 20, right: 10, left: 10, bottom: 40 }}
+            className={"focus:outline-none"}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis

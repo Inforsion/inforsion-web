@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+
+.recharts-wrapper:focus,
+.recharts-wrapper *:focus,
+.recharts-responsive-container:focus,
+.recharts-responsive-container *:focus {
+  outline: none !important;
+}
+
 @theme {
   /* Primary Colors */
   --color-primary-50: #eaf2ff;
