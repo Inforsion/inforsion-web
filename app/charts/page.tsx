@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -149,6 +149,29 @@ const SalesChart = () => {
     월: ["6개월", "12개월"],
     년: ["3년", "5년"],
   };
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const timeframe = params.get("timeframe");
+    if (timeframe && ["일", "주", "월", "년"].includes(timeframe)) {
+      setActiveTab(timeframe);
+      // timeframe에 따라 selectedPeriod 기본값 설정
+      switch (timeframe) {
+        case "일":
+          setSelectedPeriod("7일");
+          break;
+        case "주":
+          setSelectedPeriod("4주");
+          break;
+        case "월":
+          setSelectedPeriod("6개월");
+          break;
+        case "년":
+          setSelectedPeriod("3년");
+          break;
+      }
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-background-primary dark:bg-background-dark-primary">
