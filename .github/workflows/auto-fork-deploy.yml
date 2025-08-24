@@ -1,0 +1,107 @@
+name: Auto Fork and Deploy to Vercel
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+    types: [closed]
+
+env:
+  PERSONAL_GITHUB_USERNAME: "your-personal-username"  # 개인 계정명
+  FORK_REPO_NAME: "inforsion-web"
+
+jobs:
+  auto-fork-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Organization Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Check if Fork Exists
+        id: check-fork
+        run: |
+          FORK_EXISTS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
+            https://api.github.com/repos/${{ env.PERSONAL_GITHUB_USERNAME }}/${{ env.FORK_REPO_NAME }})
+          
+          if [ $FORK_EXISTS -eq 200 ]; then
+            echo "fork_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "fork_exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Fork if Not Exists
+        if: steps.check-fork.outputs.fork_exists == 'false'
+        run: |
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/forks \
+            -d '{}'
+
+      - name: Wait for Fork Creation
+        if: steps.check-fork.outputs.fork_exists == 'false'
+        run: sleep 10
+
+      - name: Configure Git for Personal Account
+        run: |
+          git config --global user.name "${{ env.PERSONAL_GITHUB_USERNAME }}"
+          git config --global user.email "your-email@example.com"
+
+      - name: Add Personal Fork as Remote
+        run: |
+          git remote add personal-fork https://${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/${{ env.PERSONAL_GITHUB_USERNAME }}/${{ env.FORK_REPO_NAME }}.git
+
+      - name: Push to Personal Fork
+        run: |
+          git push personal-fork ${{ github.ref_name }}:${{ github.ref_name }} --force
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Project
+        run: npm run build
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./
+          scope: ${{ env.PERSONAL_GITHUB_USERNAME }}
+
+      - name: Get Deployment URL
+        id: deployment
+        run: |
+          DEPLOYMENT_URL=$(vercel ls --token ${{ secrets.VERCEL_TOKEN }} --scope ${{ env.PERSONAL_GITHUB_USERNAME }} | grep ${{ env.FORK_REPO_NAME }} | head -1 | awk '{print $2}')
+          echo "url=https://$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+
+      - name: Comment Deployment URL on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🚀 **배포 완료!**
+            
+              **Preview URL:** ${{ steps.deployment.outputs.url }}
+              **Personal Fork:** https://github.com/${{ env.PERSONAL_GITHUB_USERNAME }}/${{ env.FORK_REPO_NAME }}
+            
+              자동으로 포크되어 배포되었습니다.`
+            })
