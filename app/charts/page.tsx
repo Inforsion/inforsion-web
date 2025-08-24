@@ -12,6 +12,38 @@ import {
   TooltipProps,
 } from "recharts";
 
+interface RevenueKinds<T> {
+  storeId: number;
+  storeName: string;
+  data: T[];
+}
+
+interface RevenueData {
+  매출: number;
+  date: Date;
+}
+
+// RevenueChartProps 인터페이스 정의
+interface RevenueChartProps<T> {
+  data: RevenueKinds<T>[];
+  kind: "일" | "주" | "월" | "년";
+}
+
+interface DailyData {
+  data: RevenueData;
+  isToday?: boolean;
+}
+
+interface WeeklyData {
+  data: RevenueData[];
+  isCurrentWeek?: boolean;
+}
+
+interface MonthlyData {
+  data: RevenueData[];
+  isCurrentMonth?: boolean;
+}
+
 // 가짜 데이터 생성 함수들
 const generateDailyData = () => {
   const data = [];
