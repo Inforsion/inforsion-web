@@ -8,7 +8,7 @@ on:
     types: [closed]
 
 env:
-  PERSONAL_GITHUB_USERNAME: "your-personal-username"  # 개인 계정명
+  PERSONAL_GITHUB_USERNAME: "your-personal-username"
   FORK_REPO_NAME: "inforsion-web"
 
 jobs:
@@ -22,11 +22,16 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           fetch-depth: 0
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8  # 또는 사용하는 pnpm 버전
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
+          cache: 'pnpm'  # npm 대신 pnpm 사용
 
       - name: Check if Fork Exists
         id: check-fork
@@ -67,25 +72,27 @@ jobs:
         run: |
           git push personal-fork ${{ github.ref_name }}:${{ github.ref_name }} --force
 
-      - name: Install Dependencies
-        run: npm ci
+      - name: Install Dependencies with pnpm
+        run: pnpm install --frozen-lockfile
 
       - name: Build Project
-        run: npm run build
+        run: pnpm run build
 
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: ./
-          scope: ${{ env.PERSONAL_GITHUB_USERNAME }}
+      - name: Deploy to Vercel (with pnpm)
+        run: |
+          # Vercel CLI 설치
+          pnpm add -g vercel
+          
+          # Vercel에 배포
+          vercel deploy --token ${{ secrets.VERCEL_TOKEN }} --prod
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
       - name: Get Deployment URL
         id: deployment
         run: |
-          DEPLOYMENT_URL=$(vercel ls --token ${{ secrets.VERCEL_TOKEN }} --scope ${{ env.PERSONAL_GITHUB_USERNAME }} | grep ${{ env.FORK_REPO_NAME }} | head -1 | awk '{print $2}')
+          DEPLOYMENT_URL=$(vercel ls --token ${{ secrets.VERCEL_TOKEN }} | grep ${{ env.FORK_REPO_NAME }} | head -1 | awk '{print $2}')
           echo "url=https://$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
 
       - name: Comment Deployment URL on PR
