@@ -8,7 +8,7 @@ on:
     types: [closed]
 
 env:
-  PERSONAL_GITHUB_USERNAME: "your-personal-username"
+  PERSONAL_GITHUB_USERNAME: "ShipFriend0516"
   FORK_REPO_NAME: "inforsion-web"
 
 jobs:
