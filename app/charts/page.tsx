@@ -9,6 +9,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
+  TooltipProps,
 } from "recharts";
 
 // 가짜 데이터 생성 함수들
