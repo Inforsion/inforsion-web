@@ -1,26 +1,178 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Primary Colors */
+  --color-primary-50: #eaf2ff;
+  --color-primary-100: #b4dbff;
+  --color-primary-200: #6fbaff;
+  --color-primary-300: #2897ff;
+  --color-primary-400: #006ffd;
+  --color-primary-500: #006ffd;
+  --color-primary-600: #386bf6;
+  --color-primary: #006ffd;
+
+  /* Gray Scale */
+  --color-gray-50: #ffffff;
+  --color-gray-100: #f8f9fe;
+  --color-gray-200: #e8e9f1;
+  --color-gray-300: #d4d6dd;
+  --color-gray-400: #c5c6cc;
+  --color-gray-500: #c5c6cc;
+
+  /* Semantic Colors */
+  --color-success: #2897ff;
+  --color-error: #ff7173;
+  --color-inactive: #9db2ce;
+
+  /* Text Colors */
+  --color-text-primary: #3d3d3d;
+  --color-text-secondary: #bcb9b9;
+  --color-text-weak: #343434;
+  --color-text-inverse: #ffffff;
+
+  /* Background Colors */
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f8f9fe;
+  --color-background-tertiary: #e8e9f1;
+
+  /* Border Colors */
+  --color-border: #bdbdbd;
+
+  /* Legacy Support */
+  --color-tint: #006ffd;
+  --color-icon: #c5c6cc;
+  --color-icon-selected: #006ffd;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer utilities {
+  /* Text utilities using defined theme colors */
+  .text-primary-custom {
+    color: var(--color-text-primary);
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  .text-secondary-custom {
+    color: var(--color-text-secondary);
+  }
+
+  .text-weak-custom {
+    color: var(--color-text-weak);
+  }
+
+  .text-inverse-custom {
+    color: var(--color-text-inverse);
+  }
+
+  /* Background utilities using defined theme colors */
+  .bg-primary-custom {
+    background-color: var(--color-background-primary);
+  }
+
+  .bg-secondary-custom {
+    background-color: var(--color-background-secondary);
+  }
+
+  .bg-tertiary-custom {
+    background-color: var(--color-background-tertiary);
+  }
+
+  /* Border utilities using defined theme colors */
+  .border-primary-custom {
+    border-color: var(--color-border);
+  }
+
+  /* Semantic color utilities */
+  .text-success-custom {
+    color: var(--color-success);
+  }
+
+  .text-error-custom {
+    color: var(--color-error);
+  }
+
+  .text-inactive-custom {
+    color: var(--color-inactive);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* Reusable component classes using theme colors */
+  .btn-primary {
+    background-color: var(--color-primary);
+    color: var(--color-text-inverse);
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--color-primary-600);
+  }
+
+  .btn-secondary {
+    background-color: var(--color-gray-100);
+    color: var(--color-text-primary);
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--color-gray-200);
+  }
+
+  .card {
+    background-color: var(--color-background-secondary);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  }
+
+  .input {
+    background-color: var(--color-background-primary);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .input:focus {
+    outline: none;
+    border-color: var(--color-primary-400);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary-400) 20%, transparent);
+  }
+
+  .tab-active {
+    background-color: var(--color-primary);
+    color: var(--color-text-inverse);
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+  }
+
+  .tab-inactive {
+    background-color: transparent;
+    color: var(--color-gray-400);
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    transition: color 0.2s ease;
+  }
+
+  .tab-inactive:hover {
+    color: var(--color-gray-300);
+  }
+
+  .stat-positive {
+    color: var(--color-success);
+    font-weight: 600;
+  }
+
+  .stat-negative {
+    color: var(--color-error);
+    font-weight: 600;
+  }
 }
