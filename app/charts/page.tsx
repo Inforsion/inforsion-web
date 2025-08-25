@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import CustomTooltip from "@/app/entities/common/CustomTooltip";
 import { ChartDataItem, RawRevenueData } from "@/app/types/Revenue";
-import { TriangleAlert } from "lucide-react";
+import { Bubbles, TriangleAlert } from "lucide-react";
 import {
   formatDateForDaily,
   formatDateForMonthly,
@@ -148,6 +148,7 @@ const RevenueChart = () => {
   const [selectedBar, setSelectedBar] = useState<string | null>(null);
   const [urlData, setUrlData] = useState<RawRevenueData[]>([]);
   const [hasUrlData, setHasUrlData] = useState(false);
+  const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
 
   const chartData = useMemo((): ChartDataItem[] => {
@@ -227,11 +228,13 @@ const RevenueChart = () => {
     } else {
       setHasUrlData(false);
     }
+    setLoading(false);
   }, [searchParams, selectedPeriod]);
 
   return (
     <div className="min-h-screen bg-background-primary dark:bg-background-dark-primary">
-      {hasUrlData ? (
+      {loading && <LoadingBox />}
+      {!loading && hasUrlData ? (
         <div className="chart-container focus:outline-none">
           <ResponsiveContainer
             className={"focus:outline-none"}
@@ -268,6 +271,19 @@ const RevenueChart = () => {
         <p>총 데이터 수: {chartData.length}개</p>
         <p>총 revenue: {totalSales.toLocaleString()}만원</p>
       </div>
+    </div>
+  );
+};
+
+const LoadingBox = () => {
+  return (
+    <div
+      className={
+        "chart-container flex flex-col items-center justify-center h-64 gap-2 text-gray-400 animate-pulse"
+      }
+    >
+      <Bubbles className={"animate-bounce"} />
+      <p>차트를 만들고 있어요.</p>
     </div>
   );
 };
