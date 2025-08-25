@@ -25,6 +25,7 @@ import {
   isToday,
 } from "@/app/lib/utils/format/date";
 import { useSearchParams } from "next/navigation";
+import ChartLoadingBox from "@/app/entities/common/loading/ChartLoadingBox";
 
 // 데이터 파싱 및 변환 함수
 const parseUrlData = (dataParam: string): RawRevenueData[] => {
@@ -233,7 +234,7 @@ const RevenueChart = () => {
 
   return (
     <div className="min-h-screen bg-background-primary dark:bg-background-dark-primary">
-      {loading && <LoadingBox />}
+      {loading && <ChartLoadingBox />}
       {!loading && hasUrlData ? (
         <div className="chart-container focus:outline-none">
           <ResponsiveContainer
@@ -271,19 +272,6 @@ const RevenueChart = () => {
         <p>총 데이터 수: {chartData.length}개</p>
         <p>총 revenue: {totalSales.toLocaleString()}만원</p>
       </div>
-    </div>
-  );
-};
-
-const LoadingBox = () => {
-  return (
-    <div
-      className={
-        "chart-container flex flex-col items-center justify-center h-64 gap-2 text-primary-500 animate-pulse"
-      }
-    >
-      <Bubbles className={"animate-bounce"} />
-      <p>차트를 만들고 있어요.</p>
     </div>
   );
 };
