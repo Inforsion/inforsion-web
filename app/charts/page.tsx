@@ -24,6 +24,7 @@ import {
   isCurrentYear,
   isToday,
 } from "@/app/lib/utils/format/date";
+import { useSearchParams } from "next/navigation";
 
 // revenue 데이터 인터페이스 정의
 interface RawRevenueData {
@@ -164,6 +165,10 @@ const RevenueChart = () => {
   const [selectedBar, setSelectedBar] = useState<string | null>(null);
   const [urlData, setUrlData] = useState<RawRevenueData[]>([]);
   const [hasUrlData, setHasUrlData] = useState(false);
+  const searchParams = useSearchParams();
+
+  const timeframe = searchParams.get("timeframe");
+  const dataParam = searchParams.get("data");
 
   const chartData = useMemo((): ChartDataItem[] => {
     // URL에서 받은 데이터가 있으면 사용, 없으면 에러 화면 출력
@@ -205,11 +210,6 @@ const RevenueChart = () => {
   };
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const timeframe = params.get("timeframe");
-    const dataParam = params.get("data");
-
-    // timeframe 설정
     if (timeframe && ["일", "주", "월", "년"].includes(timeframe)) {
       setActiveTab(timeframe);
       switch (timeframe) {
@@ -242,7 +242,7 @@ const RevenueChart = () => {
     } else {
       setHasUrlData(false);
     }
-  }, []);
+  }, [searchParams, timeframe, dataParam]);
 
   return (
     <div className="min-h-screen bg-background-primary dark:bg-background-dark-primary">
