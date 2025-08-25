@@ -49,7 +49,13 @@ export const metadata: Metadata = {
   },
 
   icons: {
-    icon: "/inforsion-logo-color.png",
+    icon: [
+      "/inforsion-logo-color.png",
+      {
+        url: "/favicon.svg",
+        sizes: "any",
+      },
+    ],
     shortcut: "/inforsion-logo-color.png",
     apple: "/inforsion-logo-color.png",
     other: {
