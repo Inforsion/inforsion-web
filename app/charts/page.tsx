@@ -11,7 +11,11 @@ import {
   Cell,
 } from "recharts";
 import CustomTooltip from "@/app/entities/common/CustomTooltip";
-import { RevenueChartProps } from "@/app/types/Revenue";
+import {
+  ChartDataItem,
+  RawRevenueData,
+  RevenueChartProps,
+} from "@/app/types/Revenue";
 import { TriangleAlert } from "lucide-react";
 import {
   formatDateForDaily,
@@ -25,23 +29,6 @@ import {
   isToday,
 } from "@/app/lib/utils/format/date";
 import { useSearchParams } from "next/navigation";
-
-// revenue 데이터 인터페이스 정의
-interface RawRevenueData {
-  date: string; // YYYY-MM-DD 형식
-  revenue: number;
-}
-
-// 차트용 데이터 인터페이스
-interface ChartDataItem {
-  name: string;
-  date: string;
-  revenue: number;
-  isToday?: boolean;
-  isCurrentWeek?: boolean;
-  isCurrentMonth?: boolean;
-  isCurrentYear?: boolean;
-}
 
 // 데이터 파싱 및 변환 함수
 const parseUrlData = (dataParam: string): RawRevenueData[] => {

@@ -46,6 +46,23 @@ export interface RevenueChartProps<T extends Period> {
   kind: T;
 }
 
+// revenue 데이터 인터페이스 정의
+export interface RawRevenueData {
+  date: string; // YYYY-MM-DD 형식
+  revenue: number;
+}
+
+// 차트용 데이터 인터페이스
+export interface ChartDataItem {
+  name: string;
+  date: string;
+  revenue: number;
+  isToday?: boolean;
+  isCurrentWeek?: boolean;
+  isCurrentMonth?: boolean;
+  isCurrentYear?: boolean;
+}
+
 // // 사용 예시
 // type DailyRevenueChart = RevenueChartProps<"일">;
 // type WeeklyRevenueChart = RevenueChartProps<"주">;

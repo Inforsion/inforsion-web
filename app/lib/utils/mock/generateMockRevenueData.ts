@@ -1,3 +1,11 @@
+import {
+  formatDateForDaily,
+  formatDateForMonthly,
+  formatDateForWeekly,
+  formatDateForYearly,
+} from "../format/date";
+import { ChartDataItem } from "@/app/types/Revenue";
+
 // 가짜 데이터 생성 함수들 (데이터가 없을 때 대체용)
 const generateDailyData = (): ChartDataItem[] => {
   const data = [];
@@ -9,7 +17,7 @@ const generateDailyData = (): ChartDataItem[] => {
     data.push({
       name: formatDateForDaily(date.toISOString().split("T")[0]),
       date: date.toISOString().split("T")[0],
-      매출: sales,
+      revenue: sales,
       isToday: i === 0,
     });
   }
@@ -23,7 +31,7 @@ const generateWeeklyData = (): ChartDataItem[] => {
     data.push({
       name: formatDateForWeekly(i),
       date: new Date().toISOString().split("T")[0],
-      매출: sales,
+      revenue: sales,
       isCurrentWeek: i === 3,
     });
   }
@@ -39,7 +47,7 @@ const generateMonthlyData = (): ChartDataItem[] => {
     data.push({
       name: formatDateForMonthly(date.toISOString().split("T")[0]),
       date: date.toISOString().split("T")[0],
-      매출: sales,
+      revenue: sales,
       isCurrentMonth: i === 0,
     });
   }
@@ -55,7 +63,7 @@ const generateYearlyData = (): ChartDataItem[] => {
     data.push({
       name: formatDateForYearly(date.toISOString().split("T")[0]),
       date: date.toISOString().split("T")[0],
-      매출: sales,
+      revenue: sales,
       isCurrentYear: i === 0,
     });
   }
