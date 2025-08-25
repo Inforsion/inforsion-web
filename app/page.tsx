@@ -26,8 +26,32 @@ const InforsionLanding: React.FC = () => {
 
   if (!mounted) return null;
 
+  const features = [
+    {
+      icon: TabletSmartphone as IconNode,
+      title: "모바일 최적화",
+      description:
+        "언제 어디서나 스마트폰으로 간편하게 매출을 확인하고 관리하세요",
+      delay: 0,
+    },
+    {
+      icon: ChartPie as IconNode,
+      title: "실시간 분석",
+      description:
+        "매출 데이터를 실시간으로 분석하여 비즈니스 인사이트를 제공합니다",
+      delay: 0.2,
+    },
+    {
+      icon: ShieldCheck as IconNode,
+      title: "안전한 관리",
+      description:
+        "소중한 매출 데이터를 안전하게 보호하며 체계적으로 관리합니다",
+      delay: 0.4,
+    },
+  ];
+
   return (
-    <div className="min-h-screen overflow-x-hidden">
+    <div className="min-h-screen overflow-hidden">
       {/* 메인 히어로 섹션 */}
       <motion.section
         className="relative h-screen flex items-center justify-center bg-gradient-to-br bg-primary-700"
@@ -172,24 +196,9 @@ const InforsionLanding: React.FC = () => {
           </motion.h3>
 
           <div className="grid md:grid-cols-3 gap-12">
-            <FeatureCard
-              icon={TabletSmartphone as IconNode}
-              title="모바일 최적화"
-              description="언제 어디서나 스마트폰으로 간편하게 매출을 확인하고 관리하세요"
-              delay={0}
-            />
-            <FeatureCard
-              icon={ChartPie as IconNode}
-              title="실시간 분석"
-              description="매출 데이터를 실시간으로 분석하여 비즈니스 인사이트를 제공합니다"
-              delay={0.2}
-            />
-            <FeatureCard
-              icon={ShieldCheck as IconNode}
-              title="안전한 관리"
-              description="소중한 매출 데이터를 안전하게 보호하며 체계적으로 관리합니다"
-              delay={0.4}
-            />
+            {features.map((feature, idx) => (
+              <FeatureCard key={idx} {...feature} />
+            ))}
           </div>
         </div>
       </section>
