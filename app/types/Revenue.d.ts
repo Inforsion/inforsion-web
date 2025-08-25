@@ -1,6 +1,6 @@
 // 기본 매출 데이터 인터페이스
 export interface BaseRevenueData {
-  매출: number;
+  revenue: number;
   date: Date;
 }
 

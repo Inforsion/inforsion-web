@@ -13,86 +13,34 @@ import {
 import CustomTooltip from "@/app/entities/common/CustomTooltip";
 import { RevenueChartProps } from "@/app/types/Revenue";
 import { TriangleAlert } from "lucide-react";
+import {
+  formatDateForDaily,
+  formatDateForMonthly,
+  formatDateForWeekly,
+  formatDateForYearly,
+  getWeekNumber,
+  isCurrentMonth,
+  isCurrentWeek,
+  isCurrentYear,
+  isToday,
+} from "@/app/lib/utils/format/date";
 
-// 매출 데이터 인터페이스 정의
+// revenue 데이터 인터페이스 정의
 interface RawRevenueData {
-  날짜: string; // YYYY-MM-DD 형식
-  매출: number;
+  date: string; // YYYY-MM-DD 형식
+  revenue: number;
 }
 
 // 차트용 데이터 인터페이스
 interface ChartDataItem {
   name: string;
   date: string;
-  매출: number;
+  revenue: number;
   isToday?: boolean;
   isCurrentWeek?: boolean;
   isCurrentMonth?: boolean;
   isCurrentYear?: boolean;
 }
-
-type DailyRevenueChart = RevenueChartProps<"일">;
-
-// 날짜 포맷팅 유틸리티 함수들
-const formatDateForDaily = (dateString: string): string => {
-  const date = new Date(dateString);
-  const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
-  return `${date.getMonth() + 1}.${date.getDate()}(${dayNames[date.getDay()]})`;
-};
-
-const formatDateForWeekly = (weekIndex: number): string => {
-  return `${weekIndex + 1}주차`;
-};
-
-const formatDateForMonthly = (dateString: string): string => {
-  const date = new Date(dateString);
-  return `${date.getMonth() + 1}월`;
-};
-
-const formatDateForYearly = (dateString: string): string => {
-  const date = new Date(dateString);
-  return `${date.getFullYear()}년`;
-};
-
-// 오늘 날짜 확인 함수
-const isToday = (dateString: string): boolean => {
-  const today = new Date();
-  const targetDate = new Date(dateString);
-  return today.toDateString() === targetDate.toDateString();
-};
-
-// 현재 주/월/년 확인 함수들
-const isCurrentWeek = (dateString: string): boolean => {
-  const today = new Date();
-  const targetDate = new Date(dateString);
-  const todayWeek = getWeekNumber(today);
-  const targetWeek = getWeekNumber(targetDate);
-  return (
-    todayWeek === targetWeek && today.getFullYear() === targetDate.getFullYear()
-  );
-};
-
-const isCurrentMonth = (dateString: string): boolean => {
-  const today = new Date();
-  const targetDate = new Date(dateString);
-  return (
-    today.getMonth() === targetDate.getMonth() &&
-    today.getFullYear() === targetDate.getFullYear()
-  );
-};
-
-const isCurrentYear = (dateString: string): boolean => {
-  const today = new Date();
-  const targetDate = new Date(dateString);
-  return today.getFullYear() === targetDate.getFullYear();
-};
-
-// 주차 계산 함수
-const getWeekNumber = (date: Date): number => {
-  const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-  const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
-  return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-};
 
 // 데이터 파싱 및 변환 함수
 const parseUrlData = (dataParam: string): RawRevenueData[] => {
@@ -112,38 +60,38 @@ const transformDataForPeriod = (
   switch (period) {
     case "일":
       return rawData.map((item) => ({
-        name: formatDateForDaily(item.날짜),
-        date: item.날짜,
-        매출: item.매출,
-        isToday: isToday(item.날짜),
+        name: formatDateForDaily(item.date),
+        date: item.date,
+        revenue: item.revenue,
+        isToday: isToday(item.date),
       }));
 
     case "주":
       // 주별로 데이터 그룹핑 및 합계 계산
       const weeklyData = new Map<
         number,
-        { 매출: number; 날짜: string; isCurrentWeek: boolean }
+        { revenue: number; date: string; isCurrentWeek: boolean }
       >();
 
       rawData.forEach((item) => {
-        const date = new Date(item.날짜);
+        const date = new Date(item.date);
         const weekNum = getWeekNumber(date);
 
         if (weeklyData.has(weekNum)) {
-          weeklyData.get(weekNum)!.매출 += item.매출;
+          weeklyData.get(weekNum)!.revenue += item.revenue;
         } else {
           weeklyData.set(weekNum, {
-            매출: item.매출,
-            날짜: item.날짜,
-            isCurrentWeek: isCurrentWeek(item.날짜),
+            revenue: item.revenue,
+            date: item.date,
+            isCurrentWeek: isCurrentWeek(item.date),
           });
         }
       });
 
       return Array.from(weeklyData.entries()).map(([weekNum, data]) => ({
         name: formatDateForWeekly(weekNum - 1),
-        date: data.날짜,
-        매출: data.매출,
+        date: data.date,
+        revenue: data.revenue,
         isCurrentWeek: data.isCurrentWeek,
       }));
 
@@ -151,28 +99,28 @@ const transformDataForPeriod = (
       // 월별로 데이터 그룹핑 및 합계 계산
       const monthlyData = new Map<
         string,
-        { 매출: number; 날짜: string; isCurrentMonth: boolean }
+        { revenue: number; date: string; isCurrentMonth: boolean }
       >();
 
       rawData.forEach((item) => {
-        const date = new Date(item.날짜);
+        const date = new Date(item.date);
         const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
 
         if (monthlyData.has(monthKey)) {
-          monthlyData.get(monthKey)!.매출 += item.매출;
+          monthlyData.get(monthKey)!.revenue += item.revenue;
         } else {
           monthlyData.set(monthKey, {
-            매출: item.매출,
-            날짜: item.날짜,
-            isCurrentMonth: isCurrentMonth(item.날짜),
+            revenue: item.revenue,
+            date: item.date,
+            isCurrentMonth: isCurrentMonth(item.date),
           });
         }
       });
 
       return Array.from(monthlyData.values()).map((data) => ({
-        name: formatDateForMonthly(data.날짜),
-        date: data.날짜,
-        매출: data.매출,
+        name: formatDateForMonthly(data.date),
+        date: data.date,
+        revenue: data.revenue,
         isCurrentMonth: data.isCurrentMonth,
       }));
 
@@ -180,98 +128,34 @@ const transformDataForPeriod = (
       // 연도별로 데이터 그룹핑 및 합계 계산
       const yearlyData = new Map<
         number,
-        { 매출: number; 날짜: string; isCurrentYear: boolean }
+        { revenue: number; date: string; isCurrentYear: boolean }
       >();
 
       rawData.forEach((item) => {
-        const date = new Date(item.날짜);
+        const date = new Date(item.date);
         const year = date.getFullYear();
 
         if (yearlyData.has(year)) {
-          yearlyData.get(year)!.매출 += item.매출;
+          yearlyData.get(year)!.revenue += item.revenue;
         } else {
           yearlyData.set(year, {
-            매출: item.매출,
-            날짜: item.날짜,
-            isCurrentYear: isCurrentYear(item.날짜),
+            revenue: item.revenue,
+            date: item.date,
+            isCurrentYear: isCurrentYear(item.date),
           });
         }
       });
 
       return Array.from(yearlyData.values()).map((data) => ({
-        name: formatDateForYearly(data.날짜),
-        date: data.날짜,
-        매출: data.매출,
+        name: formatDateForYearly(data.date),
+        date: data.date,
+        revenue: data.revenue,
         isCurrentYear: data.isCurrentYear,
       }));
 
     default:
       return [];
   }
-};
-
-// 가짜 데이터 생성 함수들 (데이터가 없을 때 대체용)
-const generateDailyData = (): ChartDataItem[] => {
-  const data = [];
-  const today = new Date();
-  for (let i = 6; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-    const sales = Math.floor(Math.random() * 20) + 15;
-    data.push({
-      name: formatDateForDaily(date.toISOString().split("T")[0]),
-      date: date.toISOString().split("T")[0],
-      매출: sales,
-      isToday: i === 0,
-    });
-  }
-  return data;
-};
-
-const generateWeeklyData = (): ChartDataItem[] => {
-  const data = [];
-  for (let i = 0; i < 5; i++) {
-    const sales = Math.floor(Math.random() * 50) + 80;
-    data.push({
-      name: formatDateForWeekly(i),
-      date: new Date().toISOString().split("T")[0],
-      매출: sales,
-      isCurrentWeek: i === 3,
-    });
-  }
-  return data;
-};
-
-const generateMonthlyData = (): ChartDataItem[] => {
-  const data = [];
-  const today = new Date();
-  for (let i = 5; i >= 0; i--) {
-    const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
-    const sales = Math.floor(Math.random() * 100) + 200;
-    data.push({
-      name: formatDateForMonthly(date.toISOString().split("T")[0]),
-      date: date.toISOString().split("T")[0],
-      매출: sales,
-      isCurrentMonth: i === 0,
-    });
-  }
-  return data;
-};
-
-const generateYearlyData = (): ChartDataItem[] => {
-  const data = [];
-  const currentYear = new Date().getFullYear();
-  for (let i = 4; i >= 0; i--) {
-    const sales = Math.floor(Math.random() * 500) + 2000;
-    const date = new Date(currentYear - i, 0, 1);
-    data.push({
-      name: formatDateForYearly(date.toISOString().split("T")[0]),
-      date: date.toISOString().split("T")[0],
-      매출: sales,
-      isCurrentYear: i === 0,
-    });
-  }
-  return data;
 };
 
 const RevenueChart = () => {
@@ -290,7 +174,7 @@ const RevenueChart = () => {
   }, [activeTab, urlData, hasUrlData]);
 
   const totalSales = useMemo(() => {
-    return chartData.reduce((sum, item) => sum + item.매출, 0);
+    return chartData.reduce((sum, item) => sum + item.revenue, 0);
   }, [chartData]);
 
   const avgSales = useMemo(() => {
@@ -298,7 +182,7 @@ const RevenueChart = () => {
   }, [chartData, totalSales]);
 
   const maxSales = useMemo(() => {
-    return Math.max(...chartData.map((item) => item.매출));
+    return Math.max(...chartData.map((item) => item.revenue));
   }, [chartData]);
 
   const getBarColor = (entry: ChartDataItem) => {
@@ -383,7 +267,7 @@ const RevenueChart = () => {
               />
               <YAxis hide={true} domain={[0, "dataMax + 10"]} />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="매출" radius={[8, 8, 0, 0]} maxBarSize={40}>
+              <Bar dataKey="revenue" radius={[8, 8, 0, 0]} maxBarSize={40}>
                 {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={getBarColor(entry)} />
                 ))}
@@ -392,19 +276,23 @@ const RevenueChart = () => {
           </ResponsiveContainer>
         </div>
       ) : (
-        <div
-          className={"chart-container flex items-center justify-center h-64"}
-        >
-          <div className={"text-red-400 inline-flex gap-2 items-center"}>
-            <TriangleAlert />
-            매출 데이터가 올바르지 않습니다. 다시 시도해주세요.
-          </div>
-        </div>
+        <ErrorBox />
       )}
       <div className="p-4 text-sm text-gray-600">
         <p>데이터 소스: {hasUrlData ? "URL 파라미터" : "가짜 데이터"}</p>
         <p>총 데이터 수: {chartData.length}개</p>
-        <p>총 매출: {totalSales.toLocaleString()}만원</p>
+        <p>총 revenue: {totalSales.toLocaleString()}만원</p>
+      </div>
+    </div>
+  );
+};
+
+const ErrorBox = () => {
+  return (
+    <div className={"chart-container flex items-center justify-center h-64"}>
+      <div className={"text-red-400 inline-flex gap-2 items-center"}>
+        <TriangleAlert />
+        매출 데이터가 올바르지 않습니다. 다시 시도해주세요.
       </div>
     </div>
   );
