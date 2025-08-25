@@ -26,6 +26,7 @@ import {
 } from "@/app/lib/utils/format/date";
 import { useSearchParams } from "next/navigation";
 import ChartLoadingBox from "@/app/entities/common/loading/ChartLoadingBox";
+import Link from "next/link";
 
 // 데이터 파싱 및 변환 함수
 const parseUrlData = (dataParam: string): RawRevenueData[] => {
@@ -267,7 +268,24 @@ const RevenueChart = () => {
       ) : (
         <ErrorBox />
       )}
-      <div className="p-4 text-sm text-gray-600">
+      <div className="flex flex-col gap-2 p-4 text-sm text-gray-600">
+        <p>디버깅 용</p>
+        <p>query string으로 timeframe과 data가 있어야 렌더링됩니다.</p>
+
+        <Link
+          href={`/charts?timeframe=일&data=${encodeURIComponent('[{"date":"2024-06-01","revenue":100},{"date":"2024-06-02","revenue":200}]')}`}
+        >
+          <button className={"bg-primary text-white px-4 py-2 rounded-md"}>
+            예시 데이터로 보기
+          </button>
+        </Link>
+        <p className={"font-bold"}>예시 URL:</p>
+        <p>
+          /charts?timeframe=일&data=$
+          {encodeURIComponent(
+            '[{"date":"2024-06-01","revenue":100},{"date":"2024-06-02","revenue":200}]',
+          )}
+        </p>
         <p>데이터 소스: {hasUrlData ? "URL 파라미터" : "가짜 데이터"}</p>
         <p>총 데이터 수: {chartData.length}개</p>
         <p>총 revenue: {totalSales.toLocaleString()}만원</p>

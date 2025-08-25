@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import { ChartPie, ShieldCheck, TabletSmartphone } from "lucide";
 import { Icon, IconNode } from "lucide-react";
+import Link from "next/link";
 
 interface FeatureProps {
   icon: IconNode;
@@ -160,12 +161,9 @@ const InforsionLanding: React.FC = () => {
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
           >
-            언제 어디서나
+            언제 어디서나 <span className="text-blue-600">가게 관리</span>를
             <br />
-            쉽고 간편한
-            <br />
-            <span className="text-blue-600">가게 관리</span>를<br />
-            Inforsion이 만들어드립니다
+            쉽고 간편하게 만들어드립니다
           </motion.h2>
 
           <motion.p
@@ -177,7 +175,7 @@ const InforsionLanding: React.FC = () => {
           >
             소상공인을 위한 스마트한 카페 매출 관리 서비스로
             <br />
-            복잡한 관리업무를 간단하게, 언제 어디서나 편리하게
+            복잡한 재고 관리 업무를 간단하게, 언제 어디서나 편리하게
           </motion.p>
         </div>
       </motion.section>
@@ -239,16 +237,21 @@ const InforsionLanding: React.FC = () => {
               className="bg-white text-blue-600 px-8 py-4 rounded-full font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-300"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                alert("아직 지원 되지 않는 기능입니다.");
+              }}
             >
               무료로 시작하기
             </motion.button>
-            <motion.button
-              className="border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white hover:text-blue-600 transition-all duration-300"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              더 알아보기
-            </motion.button>
+            <Link href={"/charts"}>
+              <motion.button
+                className="border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white hover:text-blue-600 transition-all duration-300"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                더 알아보기
+              </motion.button>
+            </Link>
           </motion.div>
         </div>
       </motion.section>
