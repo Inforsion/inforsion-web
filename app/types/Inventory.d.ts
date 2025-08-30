@@ -1,5 +1,3 @@
-export interface Inventory {}
-
 export interface DailyData {
   data: BaseInventoryConsumeData[];
   isToday?: boolean;
