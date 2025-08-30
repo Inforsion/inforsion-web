@@ -1,37 +1,36 @@
 "use client";
-import React, { useState, useMemo, useEffect } from "react";
+import ChartLoadingBox from "@/app/entities/common/loading/ChartLoadingBox";
 import {
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
 } from "recharts";
 import CustomTooltip from "@/app/entities/common/CustomTooltip";
-import { ChartDataItem, RawRevenueData } from "@/app/types/Revenue";
-import { Bubbles, TriangleAlert } from "lucide-react";
+import ChartDebugBox from "@/app/entities/common/debug/ChartDebugBox";
+import React, { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   formatDateForDaily,
   formatDateForMonthly,
   formatDateForWeekly,
-  formatDateForYearly,
   getWeekNumber,
   isCurrentMonth,
   isCurrentWeek,
-  isCurrentYear,
   isToday,
 } from "@/app/lib/utils/format/date";
-import { useSearchParams } from "next/navigation";
-import ChartLoadingBox from "@/app/entities/common/loading/ChartLoadingBox";
-import Link from "next/link";
-import ChartDebugBox from "@/app/entities/common/debug/ChartDebugBox";
 import ErrorBox from "@/app/entities/common/error/ErrorBox";
+import {
+  BaseInventoryConsumeData,
+  InventoryConsumedChartDataItem,
+} from "@/app/types/Inventory";
 
 // 데이터 파싱 및 변환 함수
-const parseUrlData = (dataParam: string): RawRevenueData[] => {
+const parseUrlData = (dataParam: string): InventoryConsumedChartDataItem[] => {
   try {
     return JSON.parse(decodeURIComponent(dataParam));
   } catch (error) {
@@ -42,23 +41,22 @@ const parseUrlData = (dataParam: string): RawRevenueData[] => {
 
 // 기간별 데이터 변환 함수들
 const transformDataForPeriod = (
-  rawData: RawRevenueData[],
+  rawData: BaseInventoryConsumeData[],
   period: string,
-): ChartDataItem[] => {
+): InventoryConsumedChartDataItem[] => {
   switch (period) {
     case "일":
       return rawData.map((item) => ({
         name: formatDateForDaily(item.date),
         date: item.date,
-        revenue: item.revenue,
+        inventoryConsumed: item.inventoryConsumed,
         isToday: isToday(item.date),
       }));
-
     case "주":
       // 주별로 데이터 그룹핑 및 합계 계산
       const weeklyData = new Map<
         number,
-        { revenue: number; date: string; isCurrentWeek: boolean }
+        { inventoryConsumed: number; date: string; isCurrentWeek: boolean }
       >();
 
       rawData.forEach((item) => {
@@ -66,10 +64,10 @@ const transformDataForPeriod = (
         const weekNum = getWeekNumber(date);
 
         if (weeklyData.has(weekNum)) {
-          weeklyData.get(weekNum)!.revenue += item.revenue;
+          weeklyData.get(weekNum)!.inventoryConsumed += item.inventoryConsumed;
         } else {
           weeklyData.set(weekNum, {
-            revenue: item.revenue,
+            inventoryConsumed: item.inventoryConsumed,
             date: item.date,
             isCurrentWeek: isCurrentWeek(item.date),
           });
@@ -79,7 +77,7 @@ const transformDataForPeriod = (
       return Array.from(weeklyData.entries()).map(([weekNum, data]) => ({
         name: formatDateForWeekly(weekNum - 1),
         date: data.date,
-        revenue: data.revenue,
+        inventoryConsumed: data.inventoryConsumed,
         isCurrentWeek: data.isCurrentWeek,
       }));
 
@@ -87,7 +85,7 @@ const transformDataForPeriod = (
       // 월별로 데이터 그룹핑 및 합계 계산
       const monthlyData = new Map<
         string,
-        { revenue: number; date: string; isCurrentMonth: boolean }
+        { inventoryConsumed: number; date: string; isCurrentMonth: boolean }
       >();
 
       rawData.forEach((item) => {
@@ -95,10 +93,11 @@ const transformDataForPeriod = (
         const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
 
         if (monthlyData.has(monthKey)) {
-          monthlyData.get(monthKey)!.revenue += item.revenue;
+          monthlyData.get(monthKey)!.inventoryConsumed +=
+            item.inventoryConsumed;
         } else {
           monthlyData.set(monthKey, {
-            revenue: item.revenue,
+            inventoryConsumed: item.inventoryConsumed,
             date: item.date,
             isCurrentMonth: isCurrentMonth(item.date),
           });
@@ -108,54 +107,40 @@ const transformDataForPeriod = (
       return Array.from(monthlyData.values()).map((data) => ({
         name: formatDateForMonthly(data.date),
         date: data.date,
-        revenue: data.revenue,
+        inventoryConsumed: data.inventoryConsumed,
         isCurrentMonth: data.isCurrentMonth,
       }));
-
-    case "년":
-      // 연도별로 데이터 그룹핑 및 합계 계산
-      const yearlyData = new Map<
-        number,
-        { revenue: number; date: string; isCurrentYear: boolean }
-      >();
-
-      rawData.forEach((item) => {
-        const date = new Date(item.date);
-        const year = date.getFullYear();
-
-        if (yearlyData.has(year)) {
-          yearlyData.get(year)!.revenue += item.revenue;
-        } else {
-          yearlyData.set(year, {
-            revenue: item.revenue,
-            date: item.date,
-            isCurrentYear: isCurrentYear(item.date),
-          });
-        }
-      });
-
-      return Array.from(yearlyData.values()).map((data) => ({
-        name: formatDateForYearly(data.date),
-        date: data.date,
-        revenue: data.revenue,
-        isCurrentYear: data.isCurrentYear,
-      }));
-
     default:
       return [];
   }
 };
 
-const RevenueChart = () => {
+const InventoryChartPage = () => {
   const [activeTab, setActiveTab] = useState("일");
   const [selectedPeriod, setSelectedPeriod] = useState("7일");
   const [selectedBar, setSelectedBar] = useState<string | null>(null);
-  const [urlData, setUrlData] = useState<RawRevenueData[]>([]);
+  const [urlData, setUrlData] = useState<InventoryConsumedChartDataItem[]>([]);
   const [hasUrlData, setHasUrlData] = useState(false);
   const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
 
-  const chartData = useMemo((): ChartDataItem[] => {
+  const exampleData = [
+    {
+      date: "2024-06-01",
+      inventoryConsumed: 100,
+    },
+    { date: "2024-06-02", inventoryConsumed: 200 },
+    { date: "2024-06-03", inventoryConsumed: 150 },
+    { date: "2024-06-04", inventoryConsumed: 300 },
+    { date: "2024-06-05", inventoryConsumed: 250 },
+    { date: "2024-06-06", inventoryConsumed: 400 },
+    { date: "2024-06-07", inventoryConsumed: 350 },
+  ];
+
+  const demoUrl =
+    "/charts/inventory?timeframe=일&data=" + JSON.stringify(exampleData);
+
+  const chartData = useMemo((): InventoryConsumedChartDataItem[] => {
     // URL에서 받은 데이터가 있으면 사용, 없으면 에러 화면 출력
     if (hasUrlData && urlData.length > 0) {
       return transformDataForPeriod(urlData, activeTab);
@@ -163,19 +148,11 @@ const RevenueChart = () => {
     return [];
   }, [activeTab, urlData, hasUrlData]);
 
-  const totalSales = useMemo(() => {
-    return chartData.reduce((sum, item) => sum + item.revenue, 0);
+  const totalConsumedInventory = useMemo(() => {
+    return chartData.reduce((sum, item) => sum + item.inventoryConsumed, 0);
   }, [chartData]);
 
-  const avgSales = useMemo(() => {
-    return Math.round(totalSales / chartData.length);
-  }, [chartData, totalSales]);
-
-  const maxSales = useMemo(() => {
-    return Math.max(...chartData.map((item) => item.revenue));
-  }, [chartData]);
-
-  const getBarColor = (entry: ChartDataItem) => {
+  const getBarColor = (entry: InventoryConsumedChartDataItem) => {
     if (
       entry.isToday ||
       entry.isCurrentWeek ||
@@ -185,15 +162,6 @@ const RevenueChart = () => {
       return "#006FFD"; // primary-500
     }
     return "#B4DBFF"; // primary-100
-  };
-
-  const demoUrl = `/charts?timeframe=일&data=${encodeURIComponent('[{"date":"2024-06-01","revenue":100},{"date":"2024-06-02","revenue":200}]')}`;
-
-  const periodOptions = {
-    일: ["7일", "14일", "30일"],
-    주: ["4주", "8주", "12주"],
-    월: ["6개월", "12개월"],
-    년: ["3년", "5년"],
   };
 
   useEffect(() => {
@@ -260,8 +228,12 @@ const RevenueChart = () => {
                 axisLine={{ stroke: "#e0e0e0" }}
               />
               <YAxis hide={true} domain={[0, "dataMax + 10"]} />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="revenue" radius={[8, 8, 0, 0]} maxBarSize={40}>
+              <Tooltip content={<CustomTooltip unit={"개"} />} />
+              <Bar
+                dataKey="inventoryConsumed"
+                radius={[8, 8, 0, 0]}
+                maxBarSize={40}
+              >
                 {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={getBarColor(entry)} />
                 ))}
@@ -275,11 +247,11 @@ const RevenueChart = () => {
       <ChartDebugBox
         hasUrlData={hasUrlData}
         chartData={chartData}
-        totalSales={totalSales}
+        totalSales={totalConsumedInventory}
         demoUrl={demoUrl}
       />
     </div>
   );
 };
 
-export default RevenueChart;
+export default InventoryChartPage;
