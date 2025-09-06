@@ -154,8 +154,8 @@ const InventoryChartPage = () => {
     return chartData.reduce((sum, item) => sum + item.inventoryConsumed, 0);
   }, [chartData]);
 
-  const handleBarClick = (data: any, index: number) => {
-    setSelectedBar(selectedBar === data.name ? null : data.name);
+  const handleBarClick = (data: any) => {
+    setSelectedBar(data.name || null);
   };
 
   const getBarColor = (entry: InventoryConsumedChartDataItem) => {
