@@ -143,7 +143,9 @@ const InventoryChartPage = () => {
   const chartData = useMemo((): InventoryConsumedChartDataItem[] => {
     // URL에서 받은 데이터가 있으면 사용, 없으면 에러 화면 출력
     if (hasUrlData && urlData.length > 0) {
-      return transformDataForPeriod(urlData, activeTab);
+      const transformedData = transformDataForPeriod(urlData, activeTab);
+      setSelectedBar(transformedData.at(-1)?.name || null);
+      return transformedData;
     }
     return [];
   }, [activeTab, urlData, hasUrlData]);
@@ -152,7 +154,14 @@ const InventoryChartPage = () => {
     return chartData.reduce((sum, item) => sum + item.inventoryConsumed, 0);
   }, [chartData]);
 
+  const handleBarClick = (data: any, index: number) => {
+    setSelectedBar(selectedBar === data.name ? null : data.name);
+  };
+
   const getBarColor = (entry: InventoryConsumedChartDataItem) => {
+    if (selectedBar === entry.name) {
+      return "#006FFD";
+    }
     if (
       entry.isToday ||
       entry.isCurrentWeek ||
@@ -233,10 +242,14 @@ const InventoryChartPage = () => {
                 dataKey="inventoryConsumed"
                 radius={[8, 8, 0, 0]}
                 maxBarSize={40}
+                onClick={handleBarClick}
+                style={{ cursor: "pointer" }}
               >
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={getBarColor(entry)} />
-                ))}
+                {chartData.map((entry, index) => {
+                  return (
+                    <Cell key={`cell-${index}`} fill={getBarColor(entry)} />
+                  );
+                })}
               </Bar>
             </BarChart>
           </ResponsiveContainer>

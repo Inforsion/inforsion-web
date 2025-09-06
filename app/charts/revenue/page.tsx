@@ -26,9 +26,9 @@ import {
 } from "@/app/lib/utils/format/date";
 import { useSearchParams } from "next/navigation";
 import ChartLoadingBox from "@/app/entities/common/loading/ChartLoadingBox";
-import Link from "next/link";
 import ChartDebugBox from "@/app/entities/common/debug/ChartDebugBox";
 import ErrorBox from "@/app/entities/common/error/ErrorBox";
+import { InventoryConsumedChartDataItem } from "@/app/types/Inventory";
 
 // 데이터 파싱 및 변환 함수
 const parseUrlData = (dataParam: string): RawRevenueData[] => {
@@ -158,7 +158,9 @@ const RevenueChart = () => {
   const chartData = useMemo((): ChartDataItem[] => {
     // URL에서 받은 데이터가 있으면 사용, 없으면 에러 화면 출력
     if (hasUrlData && urlData.length > 0) {
-      return transformDataForPeriod(urlData, activeTab);
+      const transformedData = transformDataForPeriod(urlData, activeTab);
+      setSelectedBar(transformedData.at(-1)?.name || null);
+      return transformedData;
     }
     return [];
   }, [activeTab, urlData, hasUrlData]);
@@ -175,7 +177,14 @@ const RevenueChart = () => {
     return Math.max(...chartData.map((item) => item.revenue));
   }, [chartData]);
 
+  const handleBarClick = (data: any, index: number) => {
+    setSelectedBar(selectedBar === data.name ? null : data.name);
+  };
+
   const getBarColor = (entry: ChartDataItem) => {
+    if (selectedBar === entry.name) {
+      return "#006FFD";
+    }
     if (
       entry.isToday ||
       entry.isCurrentWeek ||
@@ -187,7 +196,7 @@ const RevenueChart = () => {
     return "#B4DBFF"; // primary-100
   };
 
-  const demoUrl = `/charts?timeframe=일&data=${encodeURIComponent('[{"date":"2024-06-01","revenue":100},{"date":"2024-06-02","revenue":200}]')}`;
+  const demoUrl = `/charts/revenue?timeframe=일&data=${encodeURIComponent('[{"date":"2024-06-01","revenue":100},{"date":"2024-06-02","revenue":200}]')}`;
 
   const periodOptions = {
     일: ["7일", "14일", "30일"],
@@ -261,7 +270,13 @@ const RevenueChart = () => {
               />
               <YAxis hide={true} domain={[0, "dataMax + 10"]} />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="revenue" radius={[8, 8, 0, 0]} maxBarSize={40}>
+              <Bar
+                dataKey="revenue"
+                radius={[8, 8, 0, 0]}
+                maxBarSize={40}
+                onClick={handleBarClick}
+                style={{ cursor: "pointer" }}
+              >
                 {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={getBarColor(entry)} />
                 ))}
