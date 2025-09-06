@@ -196,7 +196,19 @@ const RevenueChart = () => {
     return "#B4DBFF"; // primary-100
   };
 
-  const demoUrl = `/charts/revenue?timeframe=일&data=${encodeURIComponent('[{"date":"2024-06-01","revenue":100},{"date":"2024-06-02","revenue":200}]')}`;
+  const demoURLInfo = {
+    path: "/charts/revenue",
+    params: {
+      timeframe: "일",
+      data: '[{"date":"2024-06-01","revenue":100},{"date":"2024-06-02","revenue":200}]',
+    },
+  };
+  const demoURL =
+    demoURLInfo.path +
+    "?" +
+    Object.entries(demoURLInfo.params)
+      .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+      .join("&");
 
   const periodOptions = {
     일: ["7일", "14일", "30일"],
@@ -291,7 +303,7 @@ const RevenueChart = () => {
         hasUrlData={hasUrlData}
         chartData={chartData}
         totalSales={totalSales}
-        demoUrl={demoUrl}
+        demoUrl={demoURL}
       />
     </div>
   );
